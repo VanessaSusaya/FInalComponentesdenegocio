@@ -1,19 +1,40 @@
 package com.example.demo.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
 
 @Entity
 @Table(name = "roles")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Rol {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
-    private String nombre;   // ADMIN, USUARIO
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20, nullable = false, unique = true)
+    private ERole nombre;
+
+    // Constructor vacío
+    public Rol() {}
+
+    // Constructor con parámetros
+    public Rol(Long id, ERole nombre) {
+        this.id = id;
+        this.nombre = nombre;
+    }
+
+    // Getters y Setters
+    public Long getId() {
+        return id;
+    }
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public ERole getNombre() {
+        return nombre;
+    }
+    public void setNombre(ERole nombre) {
+        this.nombre = nombre;
+    }
 }
