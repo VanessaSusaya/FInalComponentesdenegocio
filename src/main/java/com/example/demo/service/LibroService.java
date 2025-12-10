@@ -4,6 +4,7 @@ import com.example.demo.entity.Libro;
 import com.example.demo.repository.LibroRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,6 +15,7 @@ public class LibroService {
     @Autowired
     private LibroRepository libroRepository;
 
+    @PreAuthorize("hasAnyRole('ADMIN','BIBLIOTECARIO')")
     public Libro crear(Libro l) {
         if (l.getEjemplaresDisponibles() == null) {
             l.setEjemplaresDisponibles(
@@ -24,6 +26,7 @@ public class LibroService {
     }
 
 
+    @PreAuthorize("hasAnyRole('ADMIN','BIBLIOTECARIO')")
     public Libro actualizar(Long id, Libro datos) {
         Libro l = libroRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Libro no encontrado"));
         l.setTitulo(datos.getTitulo());
@@ -35,14 +38,17 @@ public class LibroService {
         return libroRepository.save(l);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     public void eliminar(Long id) {
         libroRepository.deleteById(id);
     }
 
+    @PreAuthorize("isAuthenticated()")
     public Optional<Libro> buscarPorId(Long id) {
         return libroRepository.findById(id);
     }
 
+    @PreAuthorize("isAuthenticated()")
     public List<Libro> listarTodos() {
         return libroRepository.findAll();
     }
