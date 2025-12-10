@@ -18,7 +18,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 @Entity
 @Table(name = "usuarios")
 public class Usuario {
@@ -48,6 +48,7 @@ public class Usuario {
 
     // Un usuario puede tener muchos préstamos
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Prestamo> prestamos;
 
     // Constructor vacío
