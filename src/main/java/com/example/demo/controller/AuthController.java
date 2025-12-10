@@ -23,7 +23,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody @Validated Usuario usuario,
-                                      @RequestParam(defaultValue = "false") boolean admin) {
+                                    @RequestParam(defaultValue = "false") boolean admin) {
         Usuario creado = authService.registerUsuario(usuario, admin);
         return ResponseEntity.status(HttpStatus.CREATED).body(creado);
     }

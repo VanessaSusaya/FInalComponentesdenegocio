@@ -1,43 +1,54 @@
-package com.example.demo.controller;
+package com.example.demo.service;
 
+import com.example.demo.config.JwtUtil;
+import com.example.demo.entity.ERole;
+import com.example.demo.entity.Rol;
 import com.example.demo.entity.Usuario;
+import com.example.demo.repository.RolRepository;
 import com.example.demo.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.*;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.authentication.*;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
-@RestController
-@RequestMapping("/usuarios")
-public class UsuarioController {
+@Service
+public class AuthService {
 
     @Autowired
+    private AuthenticationManager authenticationManager;
+    @Autowired
     private UsuarioRepository usuarioRepository;
+    @Autowired
+    private RolRepository rolRepository;
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
+    @Autowired
+    private JwtUtil jwtUtil;
 
-    @GetMapping
-    public ResponseEntity<List<Usuario>> listar() {
-        return ResponseEntity.ok(usuarioRepository.findAll());
+    public String login(String email, String password) {
+        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+        return jwtUtil.generateToken(email);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Usuario> detalle(@PathVariable Long id) {
-        return usuarioRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
-    // actualizar perfil
-    @PutMapping("/{id}")
-    public ResponseEntity<Usuario> actualizar(@PathVariable Long id, @RequestBody Usuario u) {
-        Usuario existente = usuarioRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no existe"));
-
-        existente.setNombre(u.getNombre());
-        // no se actualiza password por simplicidad
-
-        usuarioRepository.save(existente);
-        return ResponseEntity.ok(existente);
+    public Usuario registerUsuario(Usuario u, boolean isAdmin) {
+        if (usuarioRepository.existsByEmail(u.getEmail())) {
+            throw new IllegalArgumentException("Email ya registrado");
+        }
+        u.setPassword(passwordEncoder.encode(u.getPassword()));
+        Set<Rol> roles = new HashSet<>();
+        Rol roleUser = rolRepository.findByNombre(ERole.ROLE_USUARIO)
+                .orElseThrow(() -> new IllegalStateException("Rol USER no existe"));
+        roles.add(roleUser);
+        if (isAdmin) {
+            Rol roleAdmin = rolRepository.findByNombre(ERole.ROLE_ADMIN)
+                    .orElseThrow(() -> new IllegalStateException("Rol ADMIN no existe"));
+            roles.add(roleAdmin);
+        }
+        u.setRoles(roles);
+        return usuarioRepository.save(u);
     }
 }
 
